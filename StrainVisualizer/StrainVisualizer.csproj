@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="images\drive.ico" />
+    <None Remove="images\file.ico" />
+    <None Remove="images\folder.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OxyPlot.Wpf" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+	  <ProjectReference Include="..\PerformanceCalculator\PerformanceCalculator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="images\drive.ico" />
+    <Resource Include="images\file.ico" />
+    <Resource Include="images\folder.ico" />
+  </ItemGroup>
+
+
+</Project>

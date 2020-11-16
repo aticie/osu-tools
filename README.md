@@ -4,18 +4,33 @@ Tools for [osu!](https://osu.ppy.sh).
 
 # Requirements
 
-- A desktop platform with the [.NET Core SDK 2.2](https://www.microsoft.com/net/learn/get-started) or higher installed.
-- When working with the codebase, we recommend using an IDE with intellisense and syntax highlighting, such as [Visual Studio 2017+](https://visualstudio.microsoft.com/vs/), [Jetbrains Rider](https://www.jetbrains.com/rider/) or [Visual Studio Code](https://code.visualstudio.com/).
-- These instructions assume you have the the [CLI git client](https://git-scm.com/) installed, but any other GUI client such as GitKraken will suffice.
-- Note that there are **[additional requirements for Windows 7 and Windows 8.1](https://docs.microsoft.com/en-us/dotnet/core/windows-prerequisites?tabs=netcore2x)** which you may need to manually install if your operating system is not up-to-date.
+- A desktop platform with the [.NET Core SDK 2.2](https://dotnet.microsoft.com/download) or higher installed. Download .Net Core SDK x64 from the link! 
+
+![](tutorial_images/dotnet_sdk_download.png?raw=true "DotNet SDK Download")
+
+
 
 # Getting Started
 
-- Clone the repository including submodules (`git clone --recurse-submodules https://github.com/aticie/osu-tools`)
+- Install [Git for Windows](https://git-scm.com/download/win). 
+- Open up a command window. (Win+r and type 'cmd')
+- Use 'cd' command to change your directory to where you want to download osu-tools. Ex: `cd C:\Program Files\`
+- Clone the repository including submodules (`git clone --recursive https://github.com/aticie/osu-tools`)
 - Navigate to each tool's directory and follow the instructions listed in the tool's README.
-    - [PerformanceCalculator](https://github.com/ppy/osu-tools/blob/master/PerformanceCalculator/README.md) - A tool for calculating the difficulty of beatmaps and the performance of replays.
+    - [PerformanceCalculator](https://github.com/aticie/osu-tools/blob/master/PerformanceCalculator/README.md) - A tool for calculating the difficulty of beatmaps and the performance of replays.
+    - [PerformanceCalculatorGUI](https://github.com/aticie/osu-tools/blob/master/PerformanceCalculatorGUI/README.md) - Same tool with GUI.
+    - [StrainVisualizer](https://github.com/aticie/osu-tools/blob/master/StrainVisualizer/README.md) - Strain Visualizer tool that shows pp strain values for selected beatmap.
+
+# Running a Tool
+
+- Go back to command window again. 
+- Change directory to whatever tool you want to build. (Ex: `cd PerformanceCalculatorGUI`)
+- Enter command: `dotnet run --`
+- Magic!
 
 # Contributing
+
+If you want to contribute my tools not peppy's, dm me on Discord. Heyronii#9925
 
 Contributions can be made via pull requests to this repository. We hope to credit and reward larger contributions via a [bounty system](https://www.bountysource.com/teams/ppy). If you're unsure of what you can help with, check out the [list of open issues](https://github.com/ppy/osu-tools/issues).
 

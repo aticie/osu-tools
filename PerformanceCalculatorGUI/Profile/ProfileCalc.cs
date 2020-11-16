@@ -90,9 +90,9 @@ namespace PerformanceCalculatorGUI.Profile
                 {
                     Beatmap = working.BeatmapInfo,
                     LocalPP = localPP,
-                    AimPP = categoryAttribs["Aim"],
-                    TapPP = categoryAttribs["Speed"],
-                    AccPP = categoryAttribs["Accuracy"],
+                    AimPP = categoryAttribs["Total Aim pp"],
+                    TapPP = categoryAttribs["Total Tap pp"],
+                    AccPP = categoryAttribs["Accuracy pp"],
                     LivePP = play.pp,
                     Mods = mods.Length > 0 ? mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}, {n}") : "None"
                 };

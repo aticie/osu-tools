@@ -23,10 +23,20 @@ Tools for [osu!](https://osu.ppy.sh).
 
 # Running a Tool
 
+If the tool has GUI you can run it easily by doing:
 - Go back to command window again. 
-- Change directory to whatever tool you want to build. (Ex: `cd PerformanceCalculatorGUI`)
+- Change directory to whatever tool you want to run. (Ex: `cd PerformanceCalculatorGUI`)
 - Enter command: `dotnet run --`
 - Magic!
+
+If the tool you want to run is PerformanceCalculator without GUI, follow the README steps in [PerformanceCalculator](https://github.com/aticie/osu-tools/blob/master/PerformanceCalculator/README.md).
+
+# Updating for New PP Reworks
+
+- Again using command window, change directory to osu-tools folder.
+- Run command: `git submodule update --remote`
+- It should pull latest changes. 
+- Run the tool again.
 
 # Contributing
 

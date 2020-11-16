@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "osu.Game.Rulesets.Taiko", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "osu.Game", "osu\osu.Game\osu.Game.csproj", "{ABDE5870-C218-4CB7-B004-8B117254687D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrainVisualizer", "StrainVisualizer\StrainVisualizer.csproj", "{44E4C7DD-DF77-42C4-A050-B370B9DC21AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrainVisualizer", "StrainVisualizer\StrainVisualizer.csproj", "{44E4C7DD-DF77-42C4-A050-B370B9DC21AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceCalculatorGUI", "PerformanceCalculatorGUI\PerformanceCalculatorGUI.csproj", "{C49841C0-3AD8-4AA5-A2FC-CCAC7F8D8248}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{44E4C7DD-DF77-42C4-A050-B370B9DC21AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44E4C7DD-DF77-42C4-A050-B370B9DC21AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44E4C7DD-DF77-42C4-A050-B370B9DC21AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C49841C0-3AD8-4AA5-A2FC-CCAC7F8D8248}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C49841C0-3AD8-4AA5-A2FC-CCAC7F8D8248}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C49841C0-3AD8-4AA5-A2FC-CCAC7F8D8248}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C49841C0-3AD8-4AA5-A2FC-CCAC7F8D8248}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

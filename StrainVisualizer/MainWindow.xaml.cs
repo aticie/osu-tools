@@ -8,6 +8,10 @@ using Microsoft.Win32;
 using osu.Game.Beatmaps;
 using PerformanceCalculator;
 using osu.Game.Rulesets.Osu.Difficulty.Skills;
+using System.Linq;
+using osu.Game.Rulesets;
+using osu.Framework.Extensions.IEnumerableExtensions;
+using osu.Framework.Audio.Track;
 
 namespace StrainVisualizer
 {
@@ -19,9 +23,12 @@ namespace StrainVisualizer
     {
         private object dummyNode;
         private string selectedNodePath;
+        public Ruleset Ruleset = LegacyHelper.GetRulesetFromLegacyID(0);
+        public List<Mod> AvailableMods = new List<Mod>();
 
         public MainWindow()
         {
+            AvailableMods = Ruleset.GetAllMods().ToList();
             InitializeComponent();
         }
         public static string GetFileFolderName(string path)
@@ -256,93 +263,58 @@ namespace StrainVisualizer
 
         void loadBeatmap_Click(object sender, RoutedEventArgs e)
         {
-            if (selectedNodePath is null)
-            {
-                return;
-            }
-            if (!selectedNodePath.EndsWith(".osu")){
-                return;
-            }
-
-            calculate_strain(selectedNodePath);
-
+            Modifier_Toggled(sender, e);
         }
-        void calculate_strain(string Beatmap)
+        void calculate_strain(string Beatmap, Mod[] mods)
         {
             var workingBeatmap = new ProcessorWorkingBeatmap(Beatmap);
             var ruleset = LegacyHelper.GetRulesetFromLegacyID(workingBeatmap.BeatmapInfo.RulesetID);
             var diff_calc = new OsuDifficultyCalculatorForVisualizer(ruleset, workingBeatmap);
-            var mods = new List<Mod>().ToArray();
 
             IBeatmap playableBeatmap = workingBeatmap.GetPlayableBeatmap(ruleset.RulesetInfo, mods);
-            var skills = diff_calc.CalculateStrains(playableBeatmap, mods, 10000);
+
+            var track = new TrackVirtual(10000);
+            mods.OfType<IApplicableToTrack>().ForEach(m => m.ApplyToTrack(track));
+
+            var skills = diff_calc.CalculateStrains(playableBeatmap, mods, track.Rate);
             PlotViewModel.AddDataToModel(skills);
             PlotViewModel.UpdateGraph();
 
         }
 
-        private void AimFlow_Checked(object sender, RoutedEventArgs e)
+        private void PlotContents_Toggled(object sender, RoutedEventArgs e)
         {
-            PlotViewModel.SeriesIsVisible["AimFlow"] = true;
+            foreach (var x in graphPlotContents.Children)
+            {
+                var chkbx = (CheckBox)x;
+                PlotViewModel.SeriesIsVisible[chkbx.Content.ToString()] = chkbx.IsChecked ?? false;
+            }
             PlotViewModel.UpdateGraph();
         }
 
-        private void AimFlow_Unchecked(object sender, RoutedEventArgs e)
+        private void Modifier_Toggled(object sender, RoutedEventArgs e)
         {
-            PlotViewModel.SeriesIsVisible["AimFlow"] = false;
-            PlotViewModel.UpdateGraph();
-        }
 
-        private void AimSnap_Checked(object sender, RoutedEventArgs e)
-        {
-            PlotViewModel.SeriesIsVisible["AimSnap"] = true;
-            PlotViewModel.UpdateGraph();
-        }
-        private void AimSnap_Unchecked(object sender, RoutedEventArgs e)
-        {
-            PlotViewModel.SeriesIsVisible["AimSnap"] = false;
-            PlotViewModel.UpdateGraph();
-        }
-        private void AimHybrid_Checked(object sender, RoutedEventArgs e)
-        {
-            PlotViewModel.SeriesIsVisible["AimHybrid"] = true;
-            PlotViewModel.UpdateGraph();
-        }
-        private void AimHybrid_Unchecked(object sender, RoutedEventArgs e)
-        {
-            PlotViewModel.SeriesIsVisible["AimHybrid"] = false;
-            PlotViewModel.UpdateGraph();
-        }
-        private void TapStamina_Checked(object sender, RoutedEventArgs e)
-        {
-            PlotViewModel.SeriesIsVisible["TapStamina"] = true;
-            PlotViewModel.UpdateGraph();
-        }
-        private void TapStamina_Unchecked(object sender, RoutedEventArgs e)
-        {
-            PlotViewModel.SeriesIsVisible["TapStamina"] = false;
-            PlotViewModel.UpdateGraph();
-        }
-        private void TapSpeed_Checked(object sender, RoutedEventArgs e)
-        {
-            PlotViewModel.SeriesIsVisible["TapSpeed"] = true;
-            PlotViewModel.UpdateGraph();
-        }
-        private void TapSpeed_Unchecked(object sender, RoutedEventArgs e)
-        {
-            PlotViewModel.SeriesIsVisible["TapSpeed"] = false;
-            PlotViewModel.UpdateGraph();
-        }
-        private void TapRhythm_Checked(object sender, RoutedEventArgs e)
-        {
-            PlotViewModel.SeriesIsVisible["TapRhythm"] = true;
-            PlotViewModel.UpdateGraph();
-        }
-        private void TapRhythm_Unchecked(object sender, RoutedEventArgs e)
-        {
-            PlotViewModel.SeriesIsVisible["TapRhythm"] = false;
-            PlotViewModel.UpdateGraph();
+            if (selectedNodePath is null)
+            {
+                return;
+            }
+            if (!selectedNodePath.EndsWith(".osu"))
+            {
+                return;
+            }
 
+            List<Mod> selected_mods = new List<Mod>();
+            foreach (var x in strainModifiers.Children)
+            {
+                var chkbx = (CheckBox)x;
+                if (!chkbx.IsChecked ?? false)
+                    continue;
+                var modString = chkbx.Content.ToString();
+                Mod newMod = AvailableMods.FirstOrDefault(m => string.Equals(m.Acronym, modString, StringComparison.CurrentCultureIgnoreCase));
+                selected_mods.Add(newMod);
+            }
+            calculate_strain(selectedNodePath, selected_mods.ToArray());
         }
     }
 }

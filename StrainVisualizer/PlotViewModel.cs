@@ -13,12 +13,12 @@ namespace StrainVisualizer
         public PlotViewModel()
         {
             StrainModel = new PlotModel {};
-            SeriesIsVisible.Add("AimSnap", false);
-            SeriesIsVisible.Add("AimFlow", false);
-            SeriesIsVisible.Add("AimHybrid", false);
-            SeriesIsVisible.Add("TapSpeed", false);
-            SeriesIsVisible.Add("TapStamina", false);
-            SeriesIsVisible.Add("TapRhythm", false);
+            SeriesIsVisible.Add("AimSnap", true);
+            SeriesIsVisible.Add("AimFlow", true);
+            SeriesIsVisible.Add("AimHybrid", true);
+            SeriesIsVisible.Add("TapSpeed", true);
+            SeriesIsVisible.Add("TapStamina", true);
+            SeriesIsVisible.Add("TapRhythm", true);
         }
 
         public static void AddDataToModel(Skill[] skills)

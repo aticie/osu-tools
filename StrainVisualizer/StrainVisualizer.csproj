@@ -18,6 +18,7 @@
 
   <ItemGroup>
 	  <ProjectReference Include="..\PerformanceCalculator\PerformanceCalculator.csproj" />
+	  <ProjectReference Include="..\osu-database-reader\osu-database-reader\osu-database-reader.csproj" />
   </ItemGroup>
 
   <ItemGroup>

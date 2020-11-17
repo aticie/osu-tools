@@ -13,6 +13,12 @@ using osu.Game.Rulesets;
 using osu.Framework.Extensions.IEnumerableExtensions;
 using osu.Framework.Audio.Track;
 using osu_database_reader.BinaryFiles;
+using System.Threading.Tasks;
+using System.Threading;
+using System.Windows.Data;
+using System.Globalization;
+using osu_database_reader.Components.Beatmaps;
+using System.Windows.Input;
 
 namespace StrainVisualizer
 {
@@ -23,19 +29,64 @@ namespace StrainVisualizer
     public partial class MainWindow : Window
     {
         private object dummyNode;
-        private string selectedNodePath;
+        private BeatmapEntry selectedNode;
         public Ruleset Ruleset = LegacyHelper.GetRulesetFromLegacyID(0);
         public List<Mod> AvailableMods = new List<Mod>();
         private string osu_path = "";
         private OsuDb osu_database;
+        private const int max_beatmaps_shown = 100;
+        private CancellationTokenSource bmap_load_cancellation = new CancellationTokenSource();
+        private IEnumerable<BeatmapEntry> std_beatmaps;
+        private CultureInfo culture = CultureInfo.InvariantCulture;
 
         public MainWindow()
         {
+
             AvailableMods = Ruleset.GetAllMods().ToList();
             osu_path = find_osu_path();
             var osu_db_path = Path.Combine(osu_path, "osu!.db");
             osu_database = OsuDb.Read(osu_db_path);
             InitializeComponent();
+            std_beatmaps = osu_database.Beatmaps.Where(o => culture.CompareInfo.IndexOf(o.GameMode.ToString(), "Standard", CompareOptions.IgnoreCase) >= 0);
+            AddBeatmapsToUI("");
+        }
+
+        public void AddBeatmapsToUI(string search_term)
+        {
+            LoadedBeatmapsVirtualStack.Items.Clear();
+
+            foreach (var bmap in std_beatmaps)
+            {
+                if (LoadedBeatmapsVirtualStack.Items.Count < max_beatmaps_shown)
+                {
+                    var searchables = new List<string> { bmap.Title, bmap.Artist, bmap.Version, bmap.SongTags };
+
+                    var match_found = false;
+                    if (!string.IsNullOrEmpty(search_term))
+                    {
+                        foreach (var searchable in searchables)
+                        {
+                            if(culture.CompareInfo.IndexOf(searchable, search_term, CompareOptions.IgnoreCase) >= 0)
+                            {
+                                match_found = true;
+                                break;
+                            }
+                            
+                        }
+                    }
+                    else
+                    {
+                        match_found = true;
+                    }
+                    if (match_found) {
+                        TextBlock new_text = new TextBlock {
+                            Text = $"{bmap.Artist} - {bmap.Title} [{bmap.Version}]",
+                            Tag = bmap
+                        };
+                        LoadedBeatmapsVirtualStack.Items.Add(new_text);
+                    }
+                }
+            }
         }
         public static string GetFileFolderName(string path)
         {
@@ -43,7 +94,6 @@ namespace StrainVisualizer
             {
                 return string.Empty;
             }
-
 
             var normalizedPath = path.Replace('/', '\\');
             var lastIndex = normalizedPath.LastIndexOf('\\');
@@ -53,36 +103,27 @@ namespace StrainVisualizer
                 return path;
             }
 
-            return path.Substring(lastIndex + 1);
-
+            return path[(lastIndex + 1)..];
 
         }
-        private void SelectedItem(object sender, RoutedPropertyChangedEventArgs<object> e)
+        private void LoadBeatmapFromUICallback(object sender, SelectionChangedEventArgs e)
         {
-            var selected = (TreeViewItem)e.NewValue;
-            var fullPath = (string)selected.Tag;
-            selectedNodePath = (string)selected.Tag;
+            if (e.AddedItems.Count > 0)
+            {
+                var selected = (TextBlock)e.AddedItems[0];
+                selectedNode = (BeatmapEntry)selected.Tag;
+                Modifier_Toggled(sender, e);
+            }
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             var osu_path = find_osu_path();
-            osu_database.load_db(osu_path);
+            var search_text = BeatmapSearchTextBox.Text;
+            //Task.Factory.StartNew(() => show_beatmaps(search_text), bmap_load_cancellation.Token);
 
-            foreach (string s in Directory.GetLogicalDrives())
-            {
-                TreeViewItem item = new TreeViewItem
-                {
-                    Header = s,
-                    Tag = s,
-                    FontWeight = FontWeights.Normal
-                };
-                item.Items.Add(dummyNode);
-                item.Expanded += new RoutedEventHandler(FolderExpanded);
-                
-                FolderView.Items.Add(item);
-            }
         }
+
 
         private string find_osu_path()
         {
@@ -111,42 +152,6 @@ namespace StrainVisualizer
             {
                 //react appropriately
                 return return_this;
-            }
-        }
-
-        void FolderExpanded(object sender, RoutedEventArgs e)
-        {
-            TreeViewItem item = (TreeViewItem)sender;
-            if (item.Items.Count == 1 && item.Items[0] == dummyNode)
-            {
-                item.Items.Clear();
-                try
-                {
-                    foreach (string s in Directory.GetDirectories(item.Tag.ToString()))
-                    {
-                        TreeViewItem subitem = new TreeViewItem
-                        {
-                            Header = s[(s.LastIndexOf("\\") + 1)..],
-                            Tag = s,
-                            FontWeight = System.Windows.FontWeights.Normal
-                        };
-                        subitem.Items.Add(dummyNode);
-                        subitem.Expanded += new RoutedEventHandler(FolderExpanded);
-                        item.Items.Add(subitem);
-                    }
-                    foreach (string s in Directory.GetFiles(item.Tag.ToString()))
-                    {
-                        TreeViewItem subitem = new TreeViewItem
-                        {
-                            Header = s[(s.LastIndexOf("\\") + 1)..],
-                            Tag = s,
-                            FontWeight = System.Windows.FontWeights.Normal
-                        };
-                        item.Items.Add(subitem);
-                    }
-
-                }
-                catch (Exception) { }
             }
         }
 
@@ -181,18 +186,21 @@ namespace StrainVisualizer
             PlotViewModel.UpdateGraph();
         }
 
+        private void BeatmapSearchUICallback(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Return)
+            {
+                AddBeatmapsToUI(BeatmapSearchTextBox.Text);
+            }
+        }
         private void Modifier_Toggled(object sender, RoutedEventArgs e)
         {
-
-            if (selectedNodePath is null)
+            if (selectedNode is null)
             {
                 return;
             }
-            if (!selectedNodePath.EndsWith(".osu"))
-            {
-                return;
-            }
-
+            var selectedNodePath = Path.Join(osu_path, "Songs", selectedNode.FolderName, selectedNode.BeatmapFileName);
+            
             List<Mod> selected_mods = new List<Mod>();
             foreach (var x in strainModifiers.Children)
             {
@@ -205,5 +213,6 @@ namespace StrainVisualizer
             }
             calculate_strain(selectedNodePath, selected_mods.ToArray());
         }
+        
     }
 }

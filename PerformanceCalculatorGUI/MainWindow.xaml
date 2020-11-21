@@ -26,16 +26,11 @@
                     <TextBox x:Name="profileUsernameTextBox" Text="" TextAlignment="Left" Padding="0,8,0,0" Grid.Column="1"/>
                     <PasswordBox x:Name="profileApiKeyTextBox" Padding="0,8,0,0" Grid.Column="1" Grid.Row="1"/>
                     <Button Click="btnProfileExecuteClick" Content="Get Scores! (Don't spam this or you will get rate-limited)" Grid.Column="2" HorizontalAlignment="Left" Grid.Row="0" Margin="15,0,0,0"/>
-                    <TextBox Text="Get your api key here: https://old.ppy.sh/p/api"  Grid.Column="2" HorizontalAlignment="Left" Grid.Row="1" Margin="15,15,0,0">
-                        <TextBox.Style>
-                            <Style TargetType="TextBox">
-                                <Setter Property="IsReadOnly" Value="True" />
-                                <Setter Property="BorderThickness" Value="0" />
-                                <Setter Property="TextWrapping" Value="Wrap" />
-                            </Style>
-                        </TextBox.Style>
-                    </TextBox>
-
+                    <TextBlock Grid.Column="2" Grid.Row="1" HorizontalAlignment="Left" Margin="15,15,0,0">
+                        <Hyperlink RequestNavigate="HandleLinkClick" NavigateUri="https://old.ppy.sh/p/api" >
+                            Get your api key here
+                        </Hyperlink>
+                    </TextBlock>
                     <Label Content="Status:" Grid.Row="2"/>
                     <Label x:Name="profileStatusTextBox" Padding="0,8,0,0" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2"/>
                     <ScrollViewer Grid.Row="3" Grid.ColumnSpan="3">

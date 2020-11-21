@@ -16,6 +16,11 @@ namespace PerformanceCalculator.Profile
         public double TapPP;
         public double AccPP;
 
+        public double PlayAccuracy;
+        public int PlayMaxCombo;
+        public int BeatmapMaxCombo;
+        public int MissCount;
+
         public BeatmapInfo Beatmap;
 
         public string Mods;

@@ -30,7 +30,7 @@ namespace PerformanceCalculatorGUI
             };
             if (openFileDialog.ShowDialog() == true)
                 data_source.OsuBeatmapPath = openFileDialog.FileName;
-            
+
         }
         private async void btnProfileExecuteClick(object sender, RoutedEventArgs e)
         {
@@ -43,7 +43,7 @@ namespace PerformanceCalculatorGUI
             {
                 profileStatusTextBox.Content = "Username can\'t be longer than 16 characters I think...";
             }
-            profileCalc.Key = profileApiKeyTextBox.Text;
+            profileCalc.Key = profileApiKeyTextBox.Password;
             profileCalc.ProfileName = profileUsernameTextBox.Text;
             await profileCalc.ExecuteAsync(profileStatusTextBox);
             outputToTextBlock(profileOutputTextBlock, profileCalc.ResultsDoc);

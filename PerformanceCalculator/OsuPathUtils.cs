@@ -11,6 +11,7 @@ namespace PerformanceCalculator
     {
         public static string GetOsuPath()
         {
+    try{
             using RegistryKey key = Registry.ClassesRoot.OpenSubKey("osu\\shell\\open\\command");
             object o = key?.GetValue("");
 
@@ -21,6 +22,10 @@ namespace PerformanceCalculator
             Array.Resize(ref pathSlices, pathSlices.Length - 1);
             var finalOsuPath = string.Join(Path.DirectorySeparatorChar, pathSlices);
             return finalOsuPath;
+        }
+        catch (Exception ex) {
+            return "";
+        }
         }
 
         public static string GetOsuDbPath()

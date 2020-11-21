@@ -132,6 +132,28 @@ Local PP: 766.7
 ...
 ```
 
+### LocalScores
+```
+> dotnet run -- localscores --help
+Recalcs all of your osu local scores on ranked maps and gives you a new top 500
+
+Usage: dotnet PerformanceCalculator.dll localscores [options]
+
+Options:
+  -?|-h|--help                   Show help information
+  -u|--user <username>           Process only the replays with the given
+                                 username. Multiple names can be specified at
+                                 once: -u user1 -u user2
+  -c|--columns <attribute_name>  Extra columns to display from beatmap category
+                                 attribs, for example 'Tap Rhythm pp'. Multiple
+                                 can be added at once -c col1 -c col2
+  -s|--sort <attribute_name>     What column to sort by (defaults to pp of the
+                                 play)
+  -t|--test-run                  Only run on 20 beatmaps to test the command
+                                 output
+  -o|--output <file.txt>         Output results to text file.
+```
+
 ### Simulate
 ```
 > dotnet run -- simulate --help

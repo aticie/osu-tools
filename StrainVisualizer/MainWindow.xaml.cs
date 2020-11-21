@@ -43,9 +43,8 @@ namespace StrainVisualizer
         {
 
             AvailableMods = Ruleset.GetAllMods().ToList();
-            osu_path = find_osu_path();
-            var osu_db_path = Path.Combine(osu_path, "osu!.db");
-            osu_database = OsuDb.Read(osu_db_path);
+            osu_path = OsuPathUtils.GetOsuPath();
+            osu_database = OsuDb.Read(OsuPathUtils.GetOsuDbPath());
             InitializeComponent();
             std_beatmaps = osu_database.Beatmaps.Where(o => culture.CompareInfo.IndexOf(o.GameMode.ToString(), "Standard", CompareOptions.IgnoreCase) >= 0);
             AddBeatmapsToUI("");
@@ -71,7 +70,7 @@ namespace StrainVisualizer
                                 match_found = true;
                                 break;
                             }
-                            
+
                         }
                     }
                     else
@@ -118,41 +117,10 @@ namespace StrainVisualizer
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            var osu_path = find_osu_path();
+            var osu_path = OsuPathUtils.GetOsuPath();
             var search_text = BeatmapSearchTextBox.Text;
             //Task.Factory.StartNew(() => show_beatmaps(search_text), bmap_load_cancellation.Token);
 
-        }
-
-
-        private string find_osu_path()
-        {
-            string return_this = "";
-            try
-            {
-                using (RegistryKey key = Registry.ClassesRoot.OpenSubKey("osu\\shell\\open\\command"))
-                {
-                    if (key != null)
-                    {
-                        object o = key.GetValue("");
-                        if (o != null)
-                        {
-                            var path_string = o as string;
-                            path_string = path_string.Split(' ')[0].Trim('"');
-                            var path_slices = path_string.Split(Path.DirectorySeparatorChar);
-                            Array.Resize(ref path_slices, path_slices.Length - 1);
-                            var final_osu_path = string.Join(Path.DirectorySeparatorChar, path_slices);
-                            return final_osu_path;
-                        }
-                    }
-                    return return_this;
-                }
-            }
-            catch (Exception ex)  //just for demonstration...it's always best to handle specific exceptions
-            {
-                //react appropriately
-                return return_this;
-            }
         }
 
         void loadBeatmap_Click(object sender, RoutedEventArgs e)
@@ -200,7 +168,7 @@ namespace StrainVisualizer
                 return;
             }
             var selectedNodePath = Path.Join(osu_path, "Songs", selectedNode.FolderName, selectedNode.BeatmapFileName);
-            
+
             List<Mod> selected_mods = new List<Mod>();
             foreach (var x in strainModifiers.Children)
             {
@@ -213,6 +181,6 @@ namespace StrainVisualizer
             }
             calculate_strain(selectedNodePath, selected_mods.ToArray());
         }
-        
+
     }
 }

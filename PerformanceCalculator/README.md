@@ -97,7 +97,7 @@ Usage: dotnet PerformanceCalculator.dll profile [arguments] [options]
 
 Arguments:
   user                       User ID is preferred, but username should also work.
-  api key                    API Key, which you can get from here: https://osu.ppy.sh/p/api
+  api key                    API Key, which you can get from here: https://old.ppy.sh/p/api
 
 Options:
   -?|-h|--help               Show help information

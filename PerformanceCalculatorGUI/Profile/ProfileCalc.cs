@@ -12,6 +12,7 @@ using osu.Game.Rulesets.Scoring;
 using Alba.CsConsoleFormat;
 using System;
 using System.Threading.Tasks;
+using osu.Game.Rulesets.Osu.Difficulty;
 
 namespace PerformanceCalculatorGUI.Profile
 {
@@ -67,7 +68,7 @@ namespace PerformanceCalculatorGUI.Profile
 
                 var working = new ProcessorWorkingBeatmap(cachePath, (int)play.beatmap_id);
 
-                var score = new ProcessorScoreDecoder(working).Parse(new ScoreInfo
+                var scoreInfo = new ScoreInfo
                 {
                     Ruleset = ruleset.RulesetInfo,
                     MaxCombo = play.maxcombo,
@@ -81,10 +82,12 @@ namespace PerformanceCalculatorGUI.Profile
                         { HitResult.Meh, (int)play.count50 },
                         { HitResult.Miss, (int)play.countmiss }
                     }
-                });
+                };
+                var score = new ProcessorScoreDecoder(working).Parse(scoreInfo);
 
                 var categoryAttribs = new Dictionary<string, double>();
-                double localPP = ruleset.CreatePerformanceCalculator(working, score.ScoreInfo).Calculate(categoryAttribs);
+                OsuPerformanceCalculator calculator = (OsuPerformanceCalculator)ruleset.CreatePerformanceCalculator(working, score.ScoreInfo);
+                double localPP = calculator.Calculate(categoryAttribs);
 
                 var thisPlay = new UserPlayInfo
                 {
@@ -94,7 +97,11 @@ namespace PerformanceCalculatorGUI.Profile
                     TapPP = categoryAttribs["Total Tap pp"],
                     AccPP = categoryAttribs["Accuracy pp"],
                     LivePP = play.pp,
-                    Mods = mods.Length > 0 ? mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}, {n}") : "None"
+                    Mods = mods.Length > 0 ? mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}, {n}") : "None",
+                    PlayMaxCombo = scoreInfo.MaxCombo,
+                    BeatmapMaxCombo = calculator.Attributes.MaxCombo,
+                    PlayAccuracy = scoreInfo.Accuracy,
+                    MissCount = scoreInfo.Statistics[HitResult.Miss]
                 };
 
                 displayPlays.Add(thisPlay);
@@ -123,11 +130,18 @@ namespace PerformanceCalculatorGUI.Profile
                 new Span($"Local PP: {totalLocalPP:F1} ({totalDiffPP:+0.0;-0.0;-})"), "\n",
                 new Alba.CsConsoleFormat.Grid
                 {
-                    Columns = { GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto },
+                    Columns =
+                    {
+                        GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto,
+                        GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto
+                    },
                     Children =
                     {
                         new Cell("beatmap"),
                         new Cell("live pp"),
+                        new Cell("acc") { Align = Align.Center },
+                        new Cell("miss"),
+                        new Cell("combo") { Align = Align.Center },
                         new Cell("aim pp"),
                         new Cell("tap pp"),
                         new Cell("acc pp"),
@@ -138,6 +152,9 @@ namespace PerformanceCalculatorGUI.Profile
                         {
                             new Cell($"{item.Beatmap.OnlineBeatmapID} - {item.Beatmap.ToString().Substring(0, Math.Min(80, item.Beatmap.ToString().Length))}"),
                             new Cell($"{item.LivePP:F1}") { Align = Align.Right },
+                            new Cell($"{item.PlayAccuracy * 100f:F2}" + " %") { Align = Align.Center },
+                            new Cell($"{item.MissCount}") { Align = Align.Center },
+                            new Cell($"{item.PlayMaxCombo}/{item.BeatmapMaxCombo}") { Align = Align.Center },
                             new Cell($"{item.AimPP:F1}") { Align = Align.Right },
                             new Cell($"{item.TapPP:F1}") { Align = Align.Right },
                             new Cell($"{item.AccPP:F1}") { Align = Align.Right },
@@ -167,6 +184,11 @@ namespace PerformanceCalculatorGUI.Profile
         public double AimPP;
         public double TapPP;
         public double AccPP;
+
+        public double PlayAccuracy;
+        public int PlayMaxCombo;
+        public int BeatmapMaxCombo;
+        public int MissCount;
 
         public BeatmapInfo Beatmap;
 

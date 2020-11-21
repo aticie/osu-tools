@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.IO;
+using System.Windows.Documents;
 using Microsoft.Win32;
 using Alba.CsConsoleFormat;
 
@@ -30,7 +32,7 @@ namespace PerformanceCalculatorGUI
             };
             if (openFileDialog.ShowDialog() == true)
                 data_source.OsuBeatmapPath = openFileDialog.FileName;
-            
+
         }
         private async void btnProfileExecuteClick(object sender, RoutedEventArgs e)
         {
@@ -43,11 +45,18 @@ namespace PerformanceCalculatorGUI
             {
                 profileStatusTextBox.Content = "Username can\'t be longer than 16 characters I think...";
             }
-            profileCalc.Key = profileApiKeyTextBox.Text;
+            profileCalc.Key = profileApiKeyTextBox.Password;
             profileCalc.ProfileName = profileUsernameTextBox.Text;
             await profileCalc.ExecuteAsync(profileStatusTextBox);
             outputToTextBlock(profileOutputTextBlock, profileCalc.ResultsDoc);
 
+        }
+
+        private void HandleLinkClick(object sender, RoutedEventArgs e) {
+            Hyperlink hl = (Hyperlink)sender;
+            string navigateUri = hl.NavigateUri.ToString();
+            Process.Start(new ProcessStartInfo(navigateUri) { UseShellExecute = true});
+            e.Handled = true;
         }
         private void btnDiffProcessBmapClick(object sender, RoutedEventArgs e)
         {

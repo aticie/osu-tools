@@ -11,21 +11,23 @@ namespace PerformanceCalculator
     {
         public static string GetOsuPath()
         {
-    try{
-            using RegistryKey key = Registry.ClassesRoot.OpenSubKey("osu\\shell\\open\\command");
-            object o = key?.GetValue("");
+            try
+            {
+                using RegistryKey key = Registry.ClassesRoot.OpenSubKey("osu\\shell\\open\\command");
+                object o = key?.GetValue("");
 
-            if (o == null || !(o is string pathString)) return "";
+                if (o == null || !(o is string pathString)) return "";
 
-            pathString = pathString.Split(' ')[0].Trim('"');
-            var pathSlices = pathString.Split(Path.DirectorySeparatorChar);
-            Array.Resize(ref pathSlices, pathSlices.Length - 1);
-            var finalOsuPath = string.Join(Path.DirectorySeparatorChar, pathSlices);
-            return finalOsuPath;
-        }
-        catch (Exception ex) {
-            return "";
-        }
+                pathString = pathString.Split(' ')[0].Trim('"');
+                var pathSlices = pathString.Split(Path.DirectorySeparatorChar);
+                Array.Resize(ref pathSlices, pathSlices.Length - 1);
+                var finalOsuPath = string.Join(Path.DirectorySeparatorChar, pathSlices);
+                return finalOsuPath;
+            }
+            catch (Exception)
+            {
+                return "";
+            }
         }
 
         public static string GetOsuDbPath()

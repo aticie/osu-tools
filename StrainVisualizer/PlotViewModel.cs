@@ -24,6 +24,7 @@ namespace StrainVisualizer
         public static void AddDataToModel(Skill[] skills)
         {
             StrainModel.Series.Clear();
+            StrainModel.Axes.Clear();
             line_series.Clear();
             foreach (var skill in skills)
             {
@@ -45,6 +46,17 @@ namespace StrainVisualizer
 
             foreach (var ls in line_series)
                 StrainModel.Series.Add(ls);
+
+            StrainModel.InvalidatePlot(true);
+
+            foreach (var ax in StrainModel.Axes)
+            {
+                if (ax.Position == OxyPlot.Axes.AxisPosition.Left)
+                {
+                    ax.IsZoomEnabled = false;
+                    ax.IsPanEnabled = false;
+                }
+            }
         }
 
         public static void UpdateGraph()

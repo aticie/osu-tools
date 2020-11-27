@@ -12,6 +12,7 @@ using osu.Game.Rulesets.Scoring;
 using Alba.CsConsoleFormat;
 using System;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using osu.Game.Rulesets.Osu.Difficulty;
 
 namespace PerformanceCalculatorGUI.Profile
@@ -20,8 +21,8 @@ namespace PerformanceCalculatorGUI.Profile
     {
         public ProfileCalc()
         {
-
         }
+
         private const string base_url = "https://osu.ppy.sh";
         public string Key = "";
         public string ProfileName = "";
@@ -33,6 +34,7 @@ namespace PerformanceCalculatorGUI.Profile
             {
                 return;
             }
+
             var displayPlays = new List<UserPlayInfo>();
             var ruleset = LegacyHelper.GetRulesetFromLegacyID(0);
             status_block.Dispatcher.Invoke(() =>
@@ -41,6 +43,12 @@ namespace PerformanceCalculatorGUI.Profile
             });
 
             dynamic userData = await getJsonFromApi($"get_user?k={Key}&u={ProfileName}&m={0}");
+
+            if (!((JArray)userData).Any())
+            {
+                ResultsDoc = new Document(new Span("Could not find user " + ProfileName));
+                return;
+            }
 
             userData = userData[0];
 
@@ -97,7 +105,7 @@ namespace PerformanceCalculatorGUI.Profile
                     TapPP = categoryAttribs["Total Tap pp"],
                     AccPP = categoryAttribs["Accuracy pp"],
                     LivePP = play.pp,
-                    Mods = mods.Length > 0 ? mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}, {n}") : "None",
+                    Mods = mods.Length > 0 ? mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}, {n}") : "",
                     PlayMaxCombo = scoreInfo.MaxCombo,
                     BeatmapMaxCombo = calculator.Attributes.MaxCombo,
                     PlayAccuracy = scoreInfo.Accuracy,
@@ -106,7 +114,6 @@ namespace PerformanceCalculatorGUI.Profile
 
                 displayPlays.Add(thisPlay);
             }
-
 
             var localOrdered = displayPlays.OrderByDescending(p => p.LocalPP).ToList();
             var liveOrdered = displayPlays.OrderByDescending(p => p.LivePP).ToList();
@@ -133,11 +140,12 @@ namespace PerformanceCalculatorGUI.Profile
                     Columns =
                     {
                         GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto,
-                        GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto
+                        GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto
                     },
                     Children =
                     {
                         new Cell("beatmap"),
+                        new Cell("mods") { Align = Align.Center },
                         new Cell("live pp"),
                         new Cell("acc") { Align = Align.Center },
                         new Cell("miss"),
@@ -151,6 +159,7 @@ namespace PerformanceCalculatorGUI.Profile
                         localOrdered.Select(item => new[]
                         {
                             new Cell($"{item.Beatmap.OnlineBeatmapID} - {item.Beatmap.ToString().Substring(0, Math.Min(80, item.Beatmap.ToString().Length))}"),
+                            new Cell(item.Mods) { Align = Align.Center },
                             new Cell($"{item.LivePP:F1}") { Align = Align.Right },
                             new Cell($"{item.PlayAccuracy * 100f:F2}" + " %") { Align = Align.Center },
                             new Cell($"{item.MissCount}") { Align = Align.Center },
@@ -165,7 +174,6 @@ namespace PerformanceCalculatorGUI.Profile
                     }
                 }
             );
-
         }
 
         private async Task<dynamic> getJsonFromApi(string request)
@@ -177,6 +185,7 @@ namespace PerformanceCalculatorGUI.Profile
             }
         }
     }
+
     public struct UserPlayInfo
     {
         public double LocalPP;

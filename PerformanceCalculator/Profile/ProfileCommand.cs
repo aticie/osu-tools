@@ -94,7 +94,7 @@ namespace PerformanceCalculator.Profile
                     TapPP = categoryAttribs["Total Tap pp"],
                     AccPP = categoryAttribs["Accuracy pp"],
                     LivePP = play.pp,
-                    Mods = mods.Length > 0 ? mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}, {n}") : "None",
+                    Mods = mods.Length > 0 ? mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}, {n}") : "",
                     PlayMaxCombo = scoreInfo.MaxCombo,
                     BeatmapMaxCombo = calculator.Attributes.MaxCombo,
                     PlayAccuracy = scoreInfo.Accuracy,
@@ -129,11 +129,12 @@ namespace PerformanceCalculator.Profile
                     Columns =
                     {
                         GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto,
-                        GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto
+                        GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto,
                     },
                     Children =
                     {
                         new Cell("beatmap"),
+                        new Cell("mods") { Align = Align.Center },
                         new Cell("live pp"),
                         new Cell("acc") { Align = Align.Center },
                         new Cell("miss"),
@@ -147,6 +148,7 @@ namespace PerformanceCalculator.Profile
                         localOrdered.Select(item => new[]
                         {
                             new Cell($"{item.Beatmap.OnlineBeatmapID} - {item.Beatmap.ToString().Substring(0, Math.Min(80, item.Beatmap.ToString().Length))}"),
+                            new Cell(item.Mods) { Align = Align.Center },
                             new Cell($"{item.LivePP:F1}") { Align = Align.Right },
                             new Cell($"{item.PlayAccuracy * 100f:F2}" + " %") { Align = Align.Center },
                             new Cell($"{item.MissCount}") { Align = Align.Center },

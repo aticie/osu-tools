@@ -168,6 +168,11 @@ namespace PerformanceCalculator.LocalScores
 
             List<LocalReplayInfo> localOrdered = allScores.GetRange(0, Math.Min(top_scores_count, allScores.Count));
 
+            for (int i = 0; i < localOrdered.Count; i++)
+            {
+                localOrdered[i].Position = i + 1;
+            }
+
             if (RecentSort)
             {
                 localOrdered.Sort((s1, s2) => s2.TimeSet.CompareTo(s1.TimeSet));
@@ -206,11 +211,11 @@ namespace PerformanceCalculator.LocalScores
                 }
             }
 
-            grid.Children.Add(localOrdered.Select((item, cellIndex) =>
+            grid.Children.Add(localOrdered.Select((item) =>
             {
                 List<Cell> cells = new List<Cell>
                 {
-                    new Cell(cellIndex + 1) { Align = Align.Left },
+                    new Cell(item.Position) { Align = Align.Left },
                     new Cell($"{item.MapName.ToString().Substring(0, Math.Min(max_name_length + 3, item.MapName.ToString().Length))}"),
                     new Cell(getMods(item.ScoreInfo)) { Align = Align.Right },
                     new Cell($"{item.TotalPP:F1}") { Align = Align.Right },
@@ -262,15 +267,6 @@ namespace PerformanceCalculator.LocalScores
             return scoreInfo.Mods.Length > 0
                 ? scoreInfo.Mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}|{n}")
                 : "";
-        }
-
-        private string getScoreLine(LocalReplayInfo values)
-        {
-            string result = values.MapName + " - " + getMods(values.ScoreInfo) + values.TotalPP + "pp";
-            result = result.PadRight(100) + "| ";
-
-            return values.MapCategoryAttribs.Aggregate(result,
-                (current, kvp) => current + (kvp.Key + "= " + kvp.Value.ToString(CultureInfo.InvariantCulture).PadRight(3) + " | "));
         }
 
         private List<Column> createColumns(int size)

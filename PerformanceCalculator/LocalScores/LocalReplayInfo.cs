@@ -14,6 +14,7 @@ namespace PerformanceCalculator.LocalScores
         public ScoreInfo ScoreInfo;
         public string MapName;
         public DateTime TimeSet;
+        public int Position;
 
         public LocalReplayInfo(double totalPP, Dictionary<string, double> mapCategoryAttribs, ScoreInfo scoreInfo, string mapName, DateTime timeSet)
         {

@@ -41,6 +41,9 @@ namespace PerformanceCalculator.LocalScores
         [Option(Description = "Only run on 20 beatmaps to test the command output")]
         public bool TestRun { get; set; }
 
+        [Option(Description = "Sort top 500 by replay date")]
+        public bool RecentSort { get; set; }
+
         public override void Execute()
         {
             var currentRuleset = LegacyHelper.GetRulesetFromLegacyID(0);
@@ -128,7 +131,7 @@ namespace PerformanceCalculator.LocalScores
                         // ReSharper disable once PossibleNullReferenceException
                         scoreInfo.Combo = calculator.Attributes.MaxCombo;
                         var pp = calculator.Calculate(categoryAttribs);
-                        replayPPValuesOnThisMap.Add(new LocalReplayInfo(pp, categoryAttribs, score.ScoreInfo, beatmapName));
+                        replayPPValuesOnThisMap.Add(new LocalReplayInfo(pp, categoryAttribs, score.ScoreInfo, beatmapName, replayEntry.TimePlayed));
                     }
                     catch (Exception e)
                     {
@@ -165,6 +168,11 @@ namespace PerformanceCalculator.LocalScores
 
             List<LocalReplayInfo> localOrdered = allScores.GetRange(0, Math.Min(top_scores_count, allScores.Count));
 
+            if (RecentSort)
+            {
+                localOrdered.Sort((s1, s2) => s2.TimeSet.CompareTo(s1.TimeSet));
+            }
+
             foreach (var values in localOrdered.Where(values => values.MapName.Length > max_name_length))
             {
                 values.MapName = "..." + values.MapName.Substring(values.MapName.Length - max_name_length);
@@ -175,7 +183,7 @@ namespace PerformanceCalculator.LocalScores
             double bonusPP = 416.6667 * (1 - Math.Pow(0.9994, allScores.Count));
 
             Grid grid = new Grid();
-            grid.Columns.Add(createColumns(10 + (ExtraColumns?.Length ?? 0)));
+            grid.Columns.Add(createColumns(11 + (ExtraColumns?.Length ?? 0)));
             grid.Children.Add(
                 new Cell("#") { Align = Align.Center },
                 new Cell("beatmap") { Align = Align.Center },
@@ -186,7 +194,8 @@ namespace PerformanceCalculator.LocalScores
                 new Cell("combo") { Align = Align.Center },
                 new Cell("Total Aim pp") { Align = Align.Center },
                 new Cell("Total Tap pp") { Align = Align.Center },
-                new Cell("Accuracy pp") { Align = Align.Center }
+                new Cell("Accuracy pp") { Align = Align.Center },
+                new Cell("Date") { Align = Align.Center }
             );
 
             if (ExtraColumns != null)
@@ -230,6 +239,8 @@ namespace PerformanceCalculator.LocalScores
                         new Cell($"{item.MapCategoryAttribs["Accuracy pp"]:F1}") { Align = Align.Right }
                     });
                 }
+
+                cells.Add(new Cell($"{item.TimeSet.Day:D2}-{item.TimeSet.Month:D2}-{item.TimeSet.Year}") { Align = Align.Right });
 
                 if (ExtraColumns != null)
                 {

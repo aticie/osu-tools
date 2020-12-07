@@ -173,6 +173,10 @@ namespace PerformanceCalculator.LocalScores
                 localOrdered[i].Position = i + 1;
             }
 
+            int index = 0;
+            double totalLocalPP = localOrdered.Sum(play => Math.Pow(0.95, index++) * play.TotalPP);
+            double bonusPP = 416.6667 * (1 - Math.Pow(0.9994, allScores.Count));
+
             if (RecentSort)
             {
                 localOrdered.Sort((s1, s2) => s2.TimeSet.CompareTo(s1.TimeSet));
@@ -182,10 +186,6 @@ namespace PerformanceCalculator.LocalScores
             {
                 values.MapName = "..." + values.MapName.Substring(values.MapName.Length - max_name_length);
             }
-
-            int index = 0;
-            double totalLocalPP = localOrdered.Sum(play => Math.Pow(0.95, index++) * play.TotalPP);
-            double bonusPP = 416.6667 * (1 - Math.Pow(0.9994, allScores.Count));
 
             Grid grid = new Grid();
             grid.Columns.Add(createColumns(11 + (ExtraColumns?.Length ?? 0)));

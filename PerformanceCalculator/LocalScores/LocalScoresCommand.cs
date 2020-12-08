@@ -41,6 +41,9 @@ namespace PerformanceCalculator.LocalScores
         [Option(Description = "Only run on 20 beatmaps to test the command output")]
         public bool TestRun { get; set; }
 
+        [Option(Description = "Sort top 500 by replay date")]
+        public bool RecentSort { get; set; }
+
         public override void Execute()
         {
             var currentRuleset = LegacyHelper.GetRulesetFromLegacyID(0);
@@ -128,7 +131,7 @@ namespace PerformanceCalculator.LocalScores
                         // ReSharper disable once PossibleNullReferenceException
                         scoreInfo.Combo = calculator.Attributes.MaxCombo;
                         var pp = calculator.Calculate(categoryAttribs);
-                        replayPPValuesOnThisMap.Add(new LocalReplayInfo(pp, categoryAttribs, score.ScoreInfo, beatmapName));
+                        replayPPValuesOnThisMap.Add(new LocalReplayInfo(pp, categoryAttribs, score.ScoreInfo, beatmapName, replayEntry.TimePlayed));
                     }
                     catch (Exception e)
                     {
@@ -165,17 +168,27 @@ namespace PerformanceCalculator.LocalScores
 
             List<LocalReplayInfo> localOrdered = allScores.GetRange(0, Math.Min(top_scores_count, allScores.Count));
 
-            foreach (var values in localOrdered.Where(values => values.MapName.Length > max_name_length))
+            for (int i = 0; i < localOrdered.Count; i++)
             {
-                values.MapName = "..." + values.MapName.Substring(values.MapName.Length - max_name_length);
+                localOrdered[i].Position = i + 1;
             }
 
             int index = 0;
             double totalLocalPP = localOrdered.Sum(play => Math.Pow(0.95, index++) * play.TotalPP);
             double bonusPP = 416.6667 * (1 - Math.Pow(0.9994, allScores.Count));
 
+            if (RecentSort)
+            {
+                localOrdered.Sort((s1, s2) => s2.TimeSet.CompareTo(s1.TimeSet));
+            }
+
+            foreach (var values in localOrdered.Where(values => values.MapName.Length > max_name_length))
+            {
+                values.MapName = "..." + values.MapName.Substring(values.MapName.Length - max_name_length);
+            }
+
             Grid grid = new Grid();
-            grid.Columns.Add(createColumns(10 + (ExtraColumns?.Length ?? 0)));
+            grid.Columns.Add(createColumns(11 + (ExtraColumns?.Length ?? 0)));
             grid.Children.Add(
                 new Cell("#") { Align = Align.Center },
                 new Cell("beatmap") { Align = Align.Center },
@@ -186,7 +199,8 @@ namespace PerformanceCalculator.LocalScores
                 new Cell("combo") { Align = Align.Center },
                 new Cell("Total Aim pp") { Align = Align.Center },
                 new Cell("Total Tap pp") { Align = Align.Center },
-                new Cell("Accuracy pp") { Align = Align.Center }
+                new Cell("Accuracy pp") { Align = Align.Center },
+                new Cell("Date") { Align = Align.Center }
             );
 
             if (ExtraColumns != null)
@@ -197,11 +211,11 @@ namespace PerformanceCalculator.LocalScores
                 }
             }
 
-            grid.Children.Add(localOrdered.Select((item, cellIndex) =>
+            grid.Children.Add(localOrdered.Select((item) =>
             {
                 List<Cell> cells = new List<Cell>
                 {
-                    new Cell(cellIndex + 1) { Align = Align.Left },
+                    new Cell(item.Position) { Align = Align.Left },
                     new Cell($"{item.MapName.ToString().Substring(0, Math.Min(max_name_length + 3, item.MapName.ToString().Length))}"),
                     new Cell(getMods(item.ScoreInfo)) { Align = Align.Right },
                     new Cell($"{item.TotalPP:F1}") { Align = Align.Right },
@@ -231,6 +245,8 @@ namespace PerformanceCalculator.LocalScores
                     });
                 }
 
+                cells.Add(new Cell($"{item.TimeSet.Day:D2}-{item.TimeSet.Month:D2}-{item.TimeSet.Year}") { Align = Align.Right });
+
                 if (ExtraColumns != null)
                 {
                     cells.AddRange(ExtraColumns.Select(extraColumn => new Cell($"{item.MapCategoryAttribs[extraColumn]:F1}") { Align = Align.Right }));
@@ -251,15 +267,6 @@ namespace PerformanceCalculator.LocalScores
             return scoreInfo.Mods.Length > 0
                 ? scoreInfo.Mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}|{n}")
                 : "";
-        }
-
-        private string getScoreLine(LocalReplayInfo values)
-        {
-            string result = values.MapName + " - " + getMods(values.ScoreInfo) + values.TotalPP + "pp";
-            result = result.PadRight(100) + "| ";
-
-            return values.MapCategoryAttribs.Aggregate(result,
-                (current, kvp) => current + (kvp.Key + "= " + kvp.Value.ToString(CultureInfo.InvariantCulture).PadRight(3) + " | "));
         }
 
         private List<Column> createColumns(int size)

@@ -151,6 +151,7 @@ Options:
                                  play)
   -t|--test-run                  Only run on 20 beatmaps to test the command
                                  output
+  -r|--recent-sort               Sort top 500 by replay date
   -o|--output <file.txt>         Output results to text file.
 ```
 

@@ -36,6 +36,15 @@ namespace PerformanceCalculator.Profile
         [AllowedValues("0", "1", "2", "3")]
         public int? Ruleset { get; }
 
+        [Option(CommandOptionType.MultipleValue, Template = "-c|--columns <attribute_name>", Description =
+            "Extra columns to display from beatmap category attribs, for example 'Tap Rhythm pp'. Multiple can be added at once -c col1 -c col2")]
+        public string[] ExtraColumns { get; set; }
+
+        [Option(CommandOptionType.SingleValue, Template = "-s|--sort <attribute_name>", Description = "What column to sort by (defaults to pp of the play)")]
+        public string SortColumnName { get; set; }
+
+        private const int max_name_length = 90;
+
         private const string base_url = "https://osu.ppy.sh";
 
         public override void Execute()
@@ -90,11 +99,9 @@ namespace PerformanceCalculator.Profile
                 {
                     Beatmap = working.BeatmapInfo,
                     LocalPP = localPP,
-                    AimPP = categoryAttribs["Total Aim pp"],
-                    TapPP = categoryAttribs["Total Tap pp"],
-                    AccPP = categoryAttribs["Accuracy pp"],
+                    MapCategoryAttribs = categoryAttribs,
                     LivePP = play.pp,
-                    Mods = mods.Length > 0 ? mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}, {n}") : "",
+                    Mods = mods.Length > 0 ? mods.Select(m => m.Acronym).Aggregate((c, n) => $"{c}|{n}") : "",
                     PlayMaxCombo = scoreInfo.MaxCombo,
                     BeatmapMaxCombo = calculator.Attributes.MaxCombo,
                     PlayAccuracy = scoreInfo.Accuracy,
@@ -120,48 +127,89 @@ namespace PerformanceCalculator.Profile
             totalLocalPP += playcountBonusPP;
             double totalDiffPP = totalLocalPP - totalLivePP;
 
+            for (int i = 0; i < localOrdered.Count; i++)
+            {
+                localOrdered[i].Position = i + 1;
+            }
+
+            if (SortColumnName != null)
+            {
+                localOrdered.Sort((s1, s2) =>
+                    s2.MapCategoryAttribs[SortColumnName].CompareTo(s1.MapCategoryAttribs[SortColumnName]));
+            }
+
+            foreach (var playInfo in localOrdered)
+            {
+                if (playInfo.Beatmap.ToString().Length > max_name_length)
+                {
+                    playInfo.MapName = "..." + playInfo.Beatmap.ToString().Substring(playInfo.Beatmap.ToString().Length - max_name_length);
+                }
+                else
+                {
+                    playInfo.MapName = playInfo.Beatmap.ToString();
+                }
+            }
+
+            Grid grid = new Grid();
+            grid.Columns.Add(createColumns(10 + (ExtraColumns?.Length ?? 0)));
+            grid.Children.Add(
+                new Cell("#") { Align = Align.Center },
+                new Cell("beatmap"),
+                new Cell("mods") { Align = Align.Center },
+                new Cell("live pp"),
+                new Cell("acc") { Align = Align.Center },
+                new Cell("miss"),
+                new Cell("combo") { Align = Align.Center }
+            );
+
+            if (ExtraColumns != null)
+            {
+                foreach (var extraColumn in ExtraColumns)
+                {
+                    grid.Children.Add(new Cell(extraColumn) { Align = Align.Center });
+                }
+            }
+
+            grid.Children.Add(
+                new Cell("local pp"),
+                new Cell("pp change"),
+                new Cell("position change")
+            );
+
+            grid.Children.Add(localOrdered.Select((item) =>
+            {
+                List<Cell> cells = new List<Cell>
+                {
+                    new Cell(item.Position) { Align = Align.Left },
+                    new Cell($" {item.Beatmap.OnlineBeatmapID} - {item.MapName}"),
+                    new Cell(item.Mods) { Align = Align.Right },
+                    new Cell($"{item.LivePP:F1}") { Align = Align.Right },
+                    new Cell($"{item.PlayAccuracy * 100f:F2}" + " %") { Align = Align.Right },
+                    new Cell($"{item.MissCount}") { Align = Align.Right },
+                    new Cell($"{item.PlayMaxCombo}/{item.BeatmapMaxCombo}") { Align = Align.Right },
+                };
+
+                if (ExtraColumns != null)
+                {
+                    cells.AddRange(ExtraColumns.Select(extraColumn => new Cell($"{item.MapCategoryAttribs[extraColumn]:F1}") { Align = Align.Right }));
+                }
+
+                cells.AddRange(new List<Cell>
+                    {
+                        new Cell($"{item.LocalPP:F1}") { Align = Align.Right },
+                        new Cell($"{item.LocalPP - item.LivePP:F1}") { Align = Align.Right },
+                        new Cell($"{liveOrdered.IndexOf(item) - localOrdered.IndexOf(item):+0;-0;-}") { Align = Align.Center },
+                    }
+                );
+
+                return cells;
+            }));
+
             OutputDocument(new Document(
                 new Span($"User:     {userData.username}"), "\n",
                 new Span($"Live PP:  {totalLivePP:F1} (including {playcountBonusPP:F1}pp from playcount)"), "\n",
                 new Span($"Local PP: {totalLocalPP:F1} ({totalDiffPP:+0.0;-0.0;-})"), "\n",
-                new Grid
-                {
-                    Columns =
-                    {
-                        GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto,
-                        GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto, GridLength.Auto,
-                    },
-                    Children =
-                    {
-                        new Cell("beatmap"),
-                        new Cell("mods") { Align = Align.Center },
-                        new Cell("live pp"),
-                        new Cell("acc") { Align = Align.Center },
-                        new Cell("miss"),
-                        new Cell("combo") { Align = Align.Center },
-                        new Cell("aim pp"),
-                        new Cell("tap pp"),
-                        new Cell("acc pp"),
-                        new Cell("local pp"),
-                        new Cell("pp change"),
-                        new Cell("position change"),
-                        localOrdered.Select(item => new[]
-                        {
-                            new Cell($"{item.Beatmap.OnlineBeatmapID} - {item.Beatmap.ToString().Substring(0, Math.Min(80, item.Beatmap.ToString().Length))}"),
-                            new Cell(item.Mods) { Align = Align.Center },
-                            new Cell($"{item.LivePP:F1}") { Align = Align.Right },
-                            new Cell($"{item.PlayAccuracy * 100f:F2}" + " %") { Align = Align.Center },
-                            new Cell($"{item.MissCount}") { Align = Align.Center },
-                            new Cell($"{item.PlayMaxCombo}/{item.BeatmapMaxCombo}") { Align = Align.Center },
-                            new Cell($"{item.AimPP:F1}") { Align = Align.Right },
-                            new Cell($"{item.TapPP:F1}") { Align = Align.Right },
-                            new Cell($"{item.AccPP:F1}") { Align = Align.Right },
-                            new Cell($"{item.LocalPP:F1}") { Align = Align.Right },
-                            new Cell($"{item.LocalPP - item.LivePP:F1}") { Align = Align.Right },
-                            new Cell($"{liveOrdered.IndexOf(item) - localOrdered.IndexOf(item):+0;-0;-}") { Align = Align.Center },
-                        })
-                    }
-                }
+                grid
             ));
         }
 
@@ -172,6 +220,20 @@ namespace PerformanceCalculator.Profile
                 req.Perform();
                 return req.ResponseObject;
             }
+        }
+
+        private List<Column> createColumns(int size)
+        {
+            List<Column> result = new List<Column>();
+
+            for (int i = 0;
+                 i < size;
+                 i++)
+            {
+                result.Add(new Column { Width = GridLength.Auto });
+            }
+
+            return result;
         }
     }
 }

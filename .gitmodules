@@ -1,4 +1,4 @@
 [submodule "osu"]
 	path = osu
 	url = https://github.com/ppy/osu.git
-	branch = PP
+	branch = master

@@ -151,6 +151,10 @@ namespace PerformanceCalculator.Profile
             }
 
             Grid grid = new Grid();
+            ExtraColumns = new string[] { "Aim",
+                             "Speed",
+                             "Accuracy"
+                            };
             grid.Columns.Add(createColumns(10 + (ExtraColumns?.Length ?? 0)));
             grid.Children.Add(
                 new Cell("#") { Align = Align.Center },

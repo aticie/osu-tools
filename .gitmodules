@@ -1,4 +1,5 @@
 [submodule "osu"]
 	path = osu
-	url = https://github.com/ppy/osu.git
-	branch = master
+	url = https://github.com/Xexxar/osu.git
+	branch = syrin_rework_dev
+

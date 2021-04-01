@@ -12,35 +12,28 @@ namespace StrainVisualizer
     {
         public PlotViewModel()
         {
-            StrainModel = new PlotModel {};
-            SeriesIsVisible.Add("AimSnap", true);
-            SeriesIsVisible.Add("AimFlow", true);
-            SeriesIsVisible.Add("AimHybrid", true);
-            SeriesIsVisible.Add("TapSpeed", true);
-            SeriesIsVisible.Add("TapStamina", true);
-            SeriesIsVisible.Add("TapRhythm", true);
+            StrainModel = new PlotModel { };
+            SeriesIsVisible.Add("Speed", true);
+            SeriesIsVisible.Add("Aim", true);
         }
 
-        public static void AddDataToModel(Skill[] skills)
+        public static void AddDataToModel(Dictionary<string, List<(double, double)>> skill_strains)
         {
             StrainModel.Series.Clear();
             StrainModel.Axes.Clear();
             line_series.Clear();
-            foreach (var skill in skills)
+            foreach (var keypair in skill_strains)
             {
-                OsuSkill s = (OsuSkill)skill;
+                var skill_name = keypair.Key;
                 var lineSerie = new LineSeries
                 {
-                    IsVisible = SeriesIsVisible[s.GetType().Name],
-                    Title = s.GetType().Name
+                    IsVisible = SeriesIsVisible[skill_name],
+                    Title = skill_name
                 };
-                double prev_strain = 1;
-                foreach (Tuple<double, double> point in s.grapher)
-                {
-                    double strain_diff = point.Item2 - prev_strain;
-                    lineSerie.Points.Add(new DataPoint(point.Item1, point.Item2));
-                    prev_strain = point.Item2;
-                }
+                var strain_tuple = keypair.Value;
+                foreach ((var strain, var cur_time) in strain_tuple)
+                    lineSerie.Points.Add(new DataPoint(cur_time, strain));
+
                 line_series.Add(lineSerie);
             }
 
@@ -67,7 +60,7 @@ namespace StrainVisualizer
         }
 
         public static Dictionary<string, bool> SeriesIsVisible = new Dictionary<string, bool>();
-        
+
         private static List<LineSeries> line_series = new List<LineSeries>();
 
         public static PlotModel StrainModel { get; private set; }
